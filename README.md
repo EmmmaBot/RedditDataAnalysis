@@ -15,7 +15,7 @@ This script fetches posts and comments from a specified subreddit using PRAW (Py
 1. **Clone the repository:**
 
     ```sh
-    git clone <repository_url>
+    git clone https://github.com/Yeonsoo94/RedditDataAnalysis.git
     cd <repository_directory>
     ```
 
