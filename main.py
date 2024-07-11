@@ -2,6 +2,11 @@ import praw
 import pandas as pd
 from datetime import datetime
 
+class CommentCollectionMode(Enum):
+    ALL_COMMENTS = 0
+    TOP_LEVEL_COMMENTS = 1
+    BOTH = 2
+
 def fetch_posts(subreddit, limit: int = None, search_keyword: str = None):
     if search_keyword:
         return subreddit.search(search_keyword, limit=limit)
@@ -11,13 +16,21 @@ def get_comments(post, collect_all_comments: bool = False):
     post.comments.replace_more(limit=None)
     return [comment.body for comment in post.comments if collect_all_comments or comment.is_root]
 
-def collect_posts_and_comments(limit: int = None, collect_all_comments: bool = False, search_keyword: str = None):
+def collect_posts_and_comments(limit: int = None,
+                               comment_mode: CommentCollectionMode = CommentCollectionMode.TOP_LEVEL_COMMENTS,
+                               search_keyword: str = None):
     all_posts = []
     posts = fetch_posts(subreddit, limit, search_keyword)
 
     for post in posts:
-        all_comments = get_comments(post, collect_all_comments)
-        top_level_comments = get_comments(post, not collect_all_comments)
+        all_comments = []
+        top_level_comments = []
+
+        if comment_mode in (CommentCollectionMode.ALL_COMMENTS, CommentCollectionMode.BOTH):
+            all_comments = get_comments(post, True)
+        if comment_mode in (CommentCollectionMode.TOP_LEVEL_COMMENTS, CommentCollectionMode.BOTH):
+            top_level_comments = get_comments(post, False)
+
         all_posts.append([
             post.title,
             post.score,
@@ -48,7 +61,7 @@ search_keyword = "YourSearchKeyword"
 subreddit = reddit.subreddit(subreddit_name)
 
 # Example Usage
-posts_and_comments = collect_posts_and_comments(search_keyword=search_keyword, limit=None, collect_all_comments=False)
+posts_and_comments = collect_posts_and_comments(search_keyword=search_keyword, limit=None, comment_mode=CommentCollectionMode.BOTH)
 
 print(f'Total number of posts: {len(posts_and_comments)}')
 
